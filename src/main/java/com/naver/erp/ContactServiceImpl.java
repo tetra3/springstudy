@@ -50,6 +50,7 @@ public class ContactServiceImpl implements ContactService {
 		}
 		
 		int contactRegCnt = this.contactDAO.insertContact(contactDTO);
+		
 		if(contactRegCnt != 1) {
 			return -1;
 		}

@@ -20,18 +20,18 @@
 	</logger>
 
 	<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++-->
-	<!-- <추가부문>myBatis 에서 실행되는 SQL 구문(select,insert,update,delete)과 select 결과물 로그로 출력하기 위한 설정--> 
+	<!-- myBatis 쿼리를 로그로 출력하기 위한 설정.  디폴트가 아닌 추가물이다.-->
 	<!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	<!-- Query Loggers -->
-	<logger name="jdbc.sqlonly" additivity="true">
-		<level value="DEBUG"/>
-		<!-- <level value="INFO"/> -->
-		<appender-ref ref="console"/>
+	<logger name="jdbc.sqlonly" additivity="false">
+		<level value="INFO"/>
+		<appender-ref ref="console-infolog"/>
 	</logger>
 	<logger name="jdbc.resultsettable" additivity="false">
 		<level value="INFO"/>
 		<appender-ref ref="console"/>
 	</logger>
+
 
 	<!--+++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 	<!-- 3rdparty Loggers -->

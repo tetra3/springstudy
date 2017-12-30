@@ -53,7 +53,9 @@ public class ContactController {
 
 	@RequestMapping(value = "/contactSearchForm3.do")
 	public ModelAndView contactSearchForm3(@ModelAttribute("contactSearchDTO") ContactSearchDTO contactSearchDTO) {
-
+		
+		
+		System.out.println("hello contactSearchForm3");
 		// 객체 생성
 		ModelAndView mav = new ModelAndView();
 		// 객체 호출 JSP 페이지명 지정

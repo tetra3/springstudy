@@ -14,6 +14,8 @@ public class ContactDAOImpl implements ContactDAO {
 	private SqlSessionTemplate sqlSession;
 
 	public List<Map<String, String>> getSaup_fieldList() {
+		
+		System.out.println("Hello getSaup");
 
 		List<Map<String, String>> saup_fieldList = sqlSession.selectList("com.naver.erp.ContactDAO.getSaup_fieldList");
 
@@ -30,6 +32,7 @@ public class ContactDAOImpl implements ContactDAO {
 	}
 
 	public List<Map<String, String>> getContactSearchList(ContactSearchDTO contactSearchDTO) {
+		
 
 		List<Map<String, String>> contactList = sqlSession.selectList("com.naver.erp.ContactDAO.getContactSearchList",
 				contactSearchDTO);

@@ -203,7 +203,7 @@
 	//***********************************************************
 	function  showContactRegForm() {
 		var left = event.clientX; var top = event.clientY+10;			
-		$('.regFormDiv').remove( );
+		$('.contactRegFormDiv').remove( );
 		$.ajax({
 			url : "/erp/contactRegForm.do" 
 			, type : "post"

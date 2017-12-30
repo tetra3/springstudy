@@ -128,7 +128,7 @@
 			order by ${sort}
 		</if>		
 		<if test="sort==null or sort==''"> 
-			order by to_char( c.reg_date, 'YYYY-MM-DD HHMISS') desc
+			order by  c.reg_date desc
 		</if>
 		<!--++++++++++++++++++++++++++++++++++++++++++++++++-->
 		<![CDATA[   		
