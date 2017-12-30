@@ -138,4 +138,41 @@
 		<!--++++++++++++++++++++++++++++++++++++++++++++++++-->
 	</select>
 	
+	<select id="getcontactPhoneCnt" parameterType="com.naver.erp.ContactDTO" resultType="int">
+		select count(*)
+		from contact
+		where contact_name=#{contact_name} and phone=#{phone}
+	</select>
+	
+	<insert id="insertContact" parameterType="com.naver.erp.ContactDTO">
+		insert into contact(
+			contact_no,
+			contact_name,
+			phone
+		) values (
+			(select nvl(max(contact_no),0)+1 from contact),
+			#{contact_name},
+			#{phone}
+		)
+	</insert>
+	
+	<insert id="insertContactSaup_field" parameterType="com.naver.erp.ContactDTO">
+		insert into contact_saup_field(
+			contact_no,
+			saup_field_code
+		)
+		
+		<foreach item="saup_field_code" collection="saup_field" index="idx" open="" separator=" union " close="">
+			select
+				<if test="contact_no>0">
+					#{contact_no}
+				</if>
+				<if test="contact_no==0">
+					(select max(contact_no) from contact)
+				</if>
+				,#{saup_field_code}
+			from dual
+		</foreach>
+	</insert>
+	
 </mapper>

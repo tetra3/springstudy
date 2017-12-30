@@ -36,4 +36,34 @@ public class ContactDAOImpl implements ContactDAO {
 
 		return contactList;
 	}
+	
+	public int getContactPhoneCnt( ContactDTO contactDTO) {
+		int contactPhoneCnt = sqlSession.selectOne(
+				"com.naver.com.erp.ContactDAO.getContactPhoneCnt",
+				contactDTO
+		);
+		return contactPhoneCnt;
+	}
+	public int insertContact(ContactDTO contactDTO) {
+		int contactRegCnt = sqlSession.insert(
+				"com.naver.com.erp.ContactDAO.insertContact",
+				contactDTO
+		);
+		
+		return contactRegCnt;
+				
+	}
+
+	@Override
+	public int insertContactSaup_field(ContactDTO contactDTO) {
+		int saup_fieldRegCnt = sqlSession.insert(
+				"com.naver.com.erp.ContactDAO.insertContactSaup_field",
+				contactDTO
+		);
+		
+		return saup_fieldRegCnt;
+	}
+	
+
+
 }
