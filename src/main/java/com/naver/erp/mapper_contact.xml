@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<!-- mapper 태그선언 -->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+	<!-- namespace 속성값으로 [DAO 인터페이스명]이 오며 -->
+	<!-- [DAO 인터페이스] 메소드명과 동일한 id 값을 소유한 태그를 내포고 있다.-->
+<!--mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm-->
+<mapper namespace="com.naver.erp.ContactDAO">
+
+	<!--*******************************************************-->
+	<!--*******************************************************-->
+	<!-- 연락처 검색 where 조건절을 독립해 선언. -->
+	<!-- [연락처 검색 총 개수[와 [연락처 검색] 시 사용할 where 절 선언.-->
+	<!--*******************************************************-->
+	<!--*******************************************************-->
+	<sql id="contactWhere">		
+		 where 1=1
+		<!--==========================================-->
+		<if test="min_reg_year!=null and min_reg_year!='' and min_reg_month!=null and min_reg_month!=''">
+			<![CDATA[   
+			and c.reg_date>=to_date( '${min_reg_year}-${min_reg_month}-01', 'YYYY-MM-DD' ) 
+			]]> 
+		</if>
+		<!--==========================================-->
+		<if test="max_reg_year!=null and max_reg_year!='' and max_reg_month!=null and max_reg_month!=''">
+			<![CDATA[   
+			and c.reg_date<=last_day(    to_date( '${max_reg_year}-${max_reg_month}', 'YYYY-MM' )    ) 
+			]]> 
+		</if>
+		<!--==========================================-->
+		<if test="keyword1!=null and keyword1!=''">
+			and ( 
+				upper(c.contact_name) like upper('%${keyword1}%') 
+				or upper(c.phone) like upper('%${keyword1}%') 
+				or upper(c.reg_date) like upper('%${keyword1}%') 
+				or c.contact_no = any(
+					select contact_no from contact_saup_field  
+						where saup_field_code=any(select saup_field_code from code_saup_field 
+						where upper(saup_field_name) like upper('%${keyword1}%')) ) 
+			) 
+		</if>
+		<!--==========================================-->
+		<!--연락처 사업 분야 검색 조건 붙이기-->
+		<!--==========================================-->
+		<if test="saup_field!=null and saup_field.size()>0"> 
+			and (
+				c.contact_no = any(select contact_no from contact_saup_field where saup_field_code in
+				<!--==========================================-->
+				<!--[mybatis 반복문] 사용하여 DTO 객체의 속성변수 saup_field 에 저장된 List<Integer> 객체에서 1개씩 꺼내서--> 
+				<!--지역변수 saup_field 에 담아 반복문이 반복될때 마다 출력한다.-->
+				<!--반복문 시작 전에 ( 을 출력하고, 출력물 사이 사이에 , 를 삽입하고,  끝난후 ) 을 출력한다. -->
+				<!--==========================================-->
+				<!--[mybatis 반복문]의 속성 설명-->
+				<!--	collection="배열/List 객체의 변수명"-->
+				<!--	item="배열객체 또는 List 객체안의 데이터를 저장할 지역변수명"-->
+				<!--	index="반복문안에서 사용할 인덱스 번호 저장 변수명"-->
+				<!--	open="반복문 시작전에 삽입할 문자"-->
+				<!--	close="반복문 끝낭 후에 삽입할 문자"-->
+				<!--	separator="반복문에 의해 표현되는 쿼리문 사이사이에 삽입될 쿼리일부분"-->
+				<!--==========================================-->
+				<foreach item="saup_field" collection="saup_field" index="index"  open="(" separator="," close=")" >
+						#{saup_field}
+				</foreach>
+			))
+		</if>
+	</sql>
+	
+	<!--*******************************************************-->
+	<!-- select 속성값 설명 -->
+	<!-- id : SQL 구문의 고유 아이디값 설정, DAO 클래스의 메소드 이름과 동일함 -->
+	<!-- parameterType : SQL 구문에 삽입될 외부 데이터와 자료형 설정 -->
+	<!-- resultType : SQL 구문의 실행 후 리턴값 자료형 설정 -->	
+	<!--*******************************************************-->
+	<select id="getSaup_fieldList" resultType="java.util.HashMap">
+		select
+			saup_field_code || '' "saup_field_code"
+			, saup_field_name || '' "saup_field_name"
+		from code_saup_field
+	</select>
+	
+	<!--*******************************************************-->
+	<!-- 연락처 검색 총 행의 개수 구하는 select 문을 내포한 select 태그 선언-->
+	<!--*******************************************************-->
+	<select id="getContactSearchListCnt" parameterType="com.naver.erp.ContactSearchDTO" resultType="int">
+		select 
+			 count(*)
+		from contact c 
+		<!--=================================-->
+		<!--<sql id="contactWhere"> 태그 안에 삽입된 SQL 구문 삽입하기-->
+		<!--=================================-->		
+		<include refid="contactWhere"/>
+	</select>
+		
+	<!--*******************************************************-->
+	<!-- 연락처 검색하는 select 문을 내포한 select 태그 선언-->
+	<!--*******************************************************-->
+	<select id="getContactSearchList" parameterType="com.naver.erp.ContactSearchDTO" resultType="java.util.HashMap">
+		<!--++++++++++++++++++++++++++++++++++++++++++++++++-->
+		select * from    (select zzz.*, rownum RNUM from (
+		<!--++++++++++++++++++++++++++++++++++++++++++++++++-->
+		select 
+			 c.contact_no||'' 	as "contact_no"
+			, c.contact_name 	as "contact_name"
+			, c.phone  			as "phone"
+			, (
+				 select 
+					 substr(xmlagg(xmlelement(x,',',s.saup_field_name)).extract('//text( )'),2) 
+				 from code_saup_field s 
+				 where s.saup_field_code=any(select saup_field_code from contact_saup_field 
+										where contact_no=c.contact_no) 
+			  )  as "saup_field" 
+			, to_char(c.reg_date,'YYYY-MM-DD')  	as "reg_date"
+		from contact c 			
+			<!-- [주의] select 절의 컬러명 알리아스를 " 없이 쓰면 -->
+			<!-- JSP에서 키값을 대문자로 써야하고 "를 붙이면 " 안의 대소문자로 그대로 써도 좋다.-->	
+			
+		<!--++++++++++++++++++++++++++++++++++++++++++++++++--> 
+		<!--<sql id="contactWhere"> 태그 안에 삽입된 SQL 구문 삽입하기-->	
+		<!--++++++++++++++++++++++++++++++++++++++++++++++++--> 
+		<include refid="contactWhere"/>		
+		
+		<!--++++++++++++++++++++++++++++++++++++++++++++++++-->		
+		<if test="sort!=null and sort!=''"> 
+			order by ${sort}
+		</if>		
+		<if test="sort==null or sort==''"> 
+			order by to_char( c.reg_date, 'YYYY-MM-DD HHMISS') desc
+		</if>
+		<!--++++++++++++++++++++++++++++++++++++++++++++++++-->
+		<![CDATA[   		
+		) zzz) where  RNUM >= ${selectPageNo*rowCntPerPage-rowCntPerPage+1} 
+							and RNUM <= ${selectPageNo*rowCntPerPage}		
+		]]> 
+		<!--++++++++++++++++++++++++++++++++++++++++++++++++-->
+	</select>
+	
+</mapper>
