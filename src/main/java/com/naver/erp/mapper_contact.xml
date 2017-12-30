@@ -138,7 +138,7 @@
 		<!--++++++++++++++++++++++++++++++++++++++++++++++++-->
 	</select>
 	
-	<select id="getcontactPhoneCnt" parameterType="com.naver.erp.ContactDTO" resultType="int">
+	<select id="getContactPhoneCnt" parameterType="com.naver.erp.ContactDTO" resultType="int">
 		select count(*)
 		from contact
 		where contact_name=#{contact_name} and phone=#{phone}

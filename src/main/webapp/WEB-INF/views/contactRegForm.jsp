@@ -52,7 +52,7 @@
 			   return;
 			}
 			if(confirm("정말 등록할까요")==false ){ return; }
-			alert( $(cRFObj).serialize( ) ); return;
+			//alert( $(cRFObj).serialize( ) ); return;
 			
 			
 			//**********************************************

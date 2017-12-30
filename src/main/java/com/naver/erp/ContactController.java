@@ -1,15 +1,20 @@
 package com.naver.erp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -83,15 +88,21 @@ public class ContactController {
 
 		return mav;
 	}
+	@RequestMapping(value="/contactRegForm.do")
+	public String contactRegForm() {
+		return "contactRegForm";
+	}
+	
 	
 	@RequestMapping(
-			value="/contactRegForm.do",
+			value="/contactRegProc.do",
 			method=RequestMethod.POST,
-			produces="application/json;charset=UTF-8"
+			produces="application/json; charset=UTF-8"
 	) 
 	@ResponseBody
 	public int insertContact(@ModelAttribute("contactDTO") ContactDTO contactDTO) {
 		
+		System.out.println("hello insertContact");
 		contactDTO.print_info();
 		int contactRegCnt = 0;
 		try {
@@ -106,9 +117,76 @@ public class ContactController {
 		}
 		
 		
-		return 1;
+		return contactRegCnt;
 	
 	}
+	
+
+	//*****************************************************
+	// /erp/setOpenedContact.do 로 접근시 호출되는 메소드 선언
+	//*****************************************************
+	@RequestMapping(                       
+		value = "/setOpenedContact.do"                //=>클의 접속 URL 설정
+		, method=RequestMethod.POST                   //=>클이 파라미터를 보내는 방법은 post로 설정. 즉 post 방식으로 보낸 데이터만 받겠다는 의미
+		, produces="application/json;charset=UTF-8"   //=>클이 응답받을 수 있는 데이터 형식과 문자섹 지정. 
+	)
+	@ResponseBody                                     //=>메소드의 리턴값을 JSON 으로 변경하여 클에게 전송하는 어노테이션 설정
+	public int setOpenedContact( @RequestParam(value="contact_no") String contact_no, HttpSession session){
+		ArrayList<String> contact_noList = (ArrayList<String>)session.getAttribute("contact_noList");  
+		if(contact_noList==null){
+			contact_noList = new ArrayList<String>();
+		}
+		for( int i=0 ; i<contact_noList.size(); i++ ){
+			if( contact_noList.get(i).equals(contact_no) ){ return 1; }
+		}
+		contact_noList.add(contact_no);
+		session.setAttribute( "contact_noList",contact_noList );
+		System.out.println( "session 객체의 contact_noList 키값에 데이터 저장 성공..." );
+		return 1;	
+	}
+
+	//*****************************************************
+	// /erp/getOpenedContact.do 로 접근시 호출되는 메소드 선언
+	//*****************************************************
+	@RequestMapping(                       
+		value = "/getOpenedContact.do"                //=>클의 접속 URL 설정
+		, method=RequestMethod.POST                   //=>클이 파라미터를 보내는 방법은 post로 설정. 즉 post 방식으로 보낸 데이터만 받겠다는 의미
+		, produces="application/json;charset=UTF-8"   //=>클이 응답받을 수 있는 데이터 형식과 문자섹 지정. 
+	)
+	@ResponseBody                                     //=>메소드의 리턴값을 JSON 으로 변경하여 클에게 전송하는 어노테이션 설정
+	public List<String> getOpenedContact( HttpSession session){
+		List<String> contact_noList = (List<String>)session.getAttribute("contact_noList");
+		try{
+			if(contact_noList!=null ) { return contact_noList; }
+			else                      { return null; }			
+		}catch(Exception ex){
+			return null;
+		}
+	}
+	
+
+	//*****************************************************
+	// /erp/deleteOpenedContact.do 로 접근시 호출되는 메소드 선언
+	//*****************************************************
+	@RequestMapping(                       
+		value = "/deleteOpenedContact.do"             //=>클의 접속 URL 설정
+		, method=RequestMethod.POST                   //=>클이 파라미터를 보내는 방법은 post로 설정. 즉 post 방식으로 보낸 데이터만 받겠다는 의미
+		, produces="application/json;charset=UTF-8"   //=>클이 응답받을 수 있는 데이터 형식과 문자섹 지정. 
+	)
+	@ResponseBody                                     //=>메소드의 리턴값을 JSON 으로 변경하여 클에게 전송하는 어노테이션 설정
+	public int deleteOpenedContact( @RequestParam(value="contact_no") String contact_no, HttpSession session){
+		List<String> contact_noList = (List<String>)session.getAttribute("contact_noList" );  
+		if(contact_noList!=null){
+			for( int i=0 ; i<contact_noList.size();i++){
+				String tmp = contact_noList.get(i);
+				if(tmp.equals(contact_no)){ contact_noList.remove(i--);  }
+			}
+			session.setAttribute( "contact_noList",contact_noList );
+			System.out.println( "session 객체의 contact_noList 키값에 데이터 삭제 성공..." );
+		}
+		return 1;
+	}
+
 	
 
 }
